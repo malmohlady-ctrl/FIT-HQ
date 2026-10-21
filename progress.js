@@ -59,7 +59,7 @@ function renderProgress() {
   const sess30 = DB.sessions.filter(x => last30.includes(x.date));
   const runs = DB.sessions.filter(x => x.type === "run");
   const bestRun = runs.reduce((b, r) => (r.detail?.km || 0) > (b?.detail?.km || 0) ? r : b, null);
-  el.innerHTML = `
+  el.innerHTML = (typeof fitnessPanelsHTML === "function" ? fitnessPanelsHTML() : "") + `
   <div class="card"><div class="row between"><h3>⚖️ Weight</h3>
     <button class="btn sm" onclick="quickWeight()">＋ Log</button></div>
     <div class="grid3" style="margin:8px 0">
