@@ -53,7 +53,8 @@ function loadDB() {
       if (!Array.isArray(DB[k])) DB[k] = [];
   } catch (e) { DB = defaultDB(); }
 }
-function saveDB() { try { localStorage.setItem(DB_KEY, JSON.stringify(DB)); } catch (e) {} }
+function saveDB() { try { localStorage.setItem(DB_KEY, JSON.stringify(DB)); const w = document.getElementById("savewarn"); if (w) w.style.display = "none"; }
+  catch (e) { const w = document.getElementById("savewarn"); if (w) { w.textContent = "⚠️ Couldn't save — device storage may be full. Export a backup in Settings → Data."; w.style.display = "block"; } } }
 const S = () => DB.settings;
 const dispW = kg => S().units === "lb" ? r1(kgToLb(kg)) + " lb" : r1(kg) + " kg";
 const inputW = v => S().units === "lb" ? lbToKg(Number(v) || 0) : (Number(v) || 0);
@@ -278,7 +279,7 @@ function renderHome() {
       <div class="ctext"><div class="cnum">${esc(cd.hero)}</div><div class="ccap">${esc(cd.cap)}</div></div>
     </div>
   </div>
-`;
+  ${typeof fitnessStripHTML === "function" ? fitnessStripHTML() : ""}`;
 }
 
 /* ---------- PLAN (week at a glance) ---------- */
@@ -384,6 +385,10 @@ function renderSettings() {
   const s = S(), u = s.units;
   const wNow = latestWeight()?.kg ?? s.startKg;
   $("#view-settings").innerHTML = `
+  <div class="card"><h3>📸 AI meal photos (optional)</h3>
+    <p class="small muted">Add your own free OpenRouter key to analyse meal photos in Nutrition. The key never leaves this device except to call OpenRouter, no account with The Forge exists, and manual logging works fully without it. Get a free key at openrouter.ai.</p>
+    <label>OpenRouter API key</label><input id="orKey" type="password" value="${esc(s.orKey || "")}" placeholder="sk-or-… (optional)" autocomplete="off">
+    <button class="btn block" style="margin-top:8px" onclick="saveOrKey()">Save key</button></div>
   <div class="card"><h3>Profile</h3>
     <label>Display name (optional)</label><input id="pfName" value="${esc(s.name)}" placeholder="Your name">
     <div class="two"><div><label>Age</label><input id="pfAge" type="number" inputmode="numeric" value="${s.age}"></div>
@@ -498,3 +503,5 @@ function importData(file) {
 loadDB();
 $("#topDate").textContent = new Date().toLocaleDateString(undefined, {weekday: "long", month: "long", day: "numeric"});
 show("home");
+
+function saveOrKey() { S().orKey = document.getElementById("orKey").value.trim(); saveDB(); toast(S().orKey ? "Key saved — photo analysis on" : "Key cleared"); }
