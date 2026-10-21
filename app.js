@@ -278,7 +278,7 @@ function renderHome() {
       <div class="ctext"><div class="cnum">${esc(cd.hero)}</div><div class="ccap">${esc(cd.cap)}</div></div>
     </div>
   </div>
-  <p class="small muted" style="text-align:center;margin-top:10px">${cd.mode === "kcal" ? esc(cd.sub || "") : "Tap the centre to open · tap a point to enter"}</p>`;
+`;
 }
 
 /* ---------- PLAN (week at a glance) ---------- */
