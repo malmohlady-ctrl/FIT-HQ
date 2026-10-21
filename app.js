@@ -25,7 +25,7 @@ function defaultDB() {
     settings: {
       name: "", age: 31, sex: "male", heightCm: 178,
       startKg: lbToKg(235), goalKg: lbToKg(200), units: "lb",
-      activity: 1.55, goalType: "lose", weekStart: 1,
+      activity: 1.55, goalType: "lose", weekStart: 1, centerStat: "kcal",
       targets: {kcal: 2000, p: 150, c: 200, f: 67, waterMl: 2500},
       targetsCustom: false, exerciseBack: false
     },
@@ -114,18 +114,43 @@ function greet() { const h = new Date().getHours(); return h < 5 ? "Up late" : h
 
 /* ---------- router ---------- */
 let curView = "home";
-function show(view) {
+let zoomOrigin = null;
+function show(view, origin) {
   curView = view;
-  $$(".view").forEach(v => v.classList.remove("on"));
-  $("#view-" + view).classList.add("on");
-  $$("#bottomnav button").forEach(b => b.classList.toggle("on", b.dataset.nav === view));
-  const titles = {home: "FIT HQ", nutrition: "Nutrition", workouts: "Workouts", progress: "Progress", settings: "Settings"};
-  $("#topTitle").textContent = view === "home" ? "FIT HQ" : titles[view];
+  $$(".view").forEach(v => v.classList.remove("on", "hubview"));
+  const el = $("#view-" + view);
+  if (origin) { el.style.setProperty("--zox", origin.x + "%"); el.style.setProperty("--zoy", origin.y + "%"); }
+  el.classList.add("on");
+  if (view === "home") el.classList.add("hubview");
+  const titles = {home: "", nutrition: "Nutrition", workouts: "Workouts", progress: "Progress", plan: "Plan", body: "Body", settings: "Settings"};
+  const tt = $("#topTitle");
+  tt.textContent = titles[view] || "";
+  tt.style.display = view === "home" ? "none" : "block";
+  $("#hubBack").style.display = view === "home" ? "none" : "block";
   ({home: renderHome, nutrition: window.renderNutrition, workouts: window.renderWorkouts,
-    progress: window.renderProgress, settings: renderSettings}[view] || renderHome)();
+    progress: window.renderProgress, plan: renderPlan, body: renderBody, settings: renderSettings}[view] || renderHome)();
   window.scrollTo(0, 0);
 }
-$$("#bottomnav button").forEach(b => b.onclick = () => show(b.dataset.nav));
+function hubGo(view, ev) {
+  let origin = null;
+  const t = ev && ev.currentTarget;
+  if (t) {
+    const r = t.getBoundingClientRect();
+    origin = {x: Math.round((r.left + r.width / 2) / window.innerWidth * 100),
+              y: Math.round((r.top + r.height / 2) / window.innerHeight * 100)};
+  }
+  show(view, origin);
+}
+$("#hubBack").onclick = () => show("home");
+let _tsy = null;
+if (typeof document.addEventListener === "function") {
+  document.addEventListener("touchstart", e => { _tsy = e.touches[0].clientY; }, {passive: true});
+  document.addEventListener("touchend", e => {
+    if (_tsy === null || curView === "home") { _tsy = null; return; }
+    if (e.changedTouches[0].clientY - _tsy > 80 && window.scrollY < 40) show("home");
+    _tsy = null;
+  }, {passive: true});
+}
 
 /* ---------- HOME ---------- */
 function weekDates() {
@@ -134,55 +159,169 @@ function weekDates() {
   const start = addDays(t, -startOffset);
   return Array.from({length: 7}, (_, i) => addDays(start, i));
 }
-function plannedToday() {
-  const dow = parseKey(todayKey()).getDay(); // 0 Sun
-  if ([1, 3, 5].includes(dow)) return {type: "dumbbell", label: "Dumbbell circuit + boxing"};
-  if ([2, 4, 6].includes(dow)) return {type: "yoga", label: "Yoga — recovery"};
-  return {type: "run", label: "Rest day — or a Couch to 5K run"};
+function plannedFor(k) {
+  const dow = parseKey(k).getDay(); // 0 Sun
+  if ([1, 3, 5].includes(dow)) return {type: "dumbbell", label: "Dumbbell circuit + boxing", short: "Strength"};
+  if ([2, 4, 6].includes(dow)) return {type: "yoga", label: "Yoga — recovery", short: "Yoga"};
+  return {type: "run", label: "Rest day — or a Couch to 5K run", short: "Rest"};
 }
-function renderHome() {
-  const t = todayKey(), s = S(), tg = s.targets;
-  const tot = dayTotals(t), wml = waterFor(t);
-  const rem = tg.kcal - tot.kcal;
-  const pct = tg.kcal ? tot.kcal / tg.kcal * 100 : 0;
-  const circ = 2 * Math.PI * 56;
-  const wk = weekDates();
-  const wkSessions = DB.sessions.filter(x => wk.includes(x.date));
-  const plan = plannedToday();
+function plannedToday() { return plannedFor(todayKey()); }
+const ICONS = {
+  workouts: `<svg viewBox="0 0 100 100"><rect width="100" height="100" fill="#141b2e"/>
+  <path d="M37 58 V30 Q37 20 47 20 H53 Q63 20 63 30 V58 H54 V31 H46 V58 Z" fill="url(#gGold)"/>
+  <circle cx="50" cy="64" r="24" fill="url(#gGold)"/>
+  <circle cx="50" cy="64" r="16.5" fill="url(#gGlow)"/><path d="M50 43 c6 9.8 13.4 15 13.4 25.2 a13.4 13.4 0 1 1 -26.8 0 C36.6 58 44 52.8 50 43z" fill="url(#gFire)"/><path d="M50 58 c3 4.8 6.6 7.4 6.6 12.4 a6.6 6.6 0 1 1 -13.2 0 c0-5 3.6-7.6 6.6-12.4z" fill="#fff3c4"/>
+  <ellipse cx="40" cy="56" rx="3.4" ry="6" fill="#fff" opacity=".28"/></svg>`,
+  nutrition: `<svg viewBox="0 0 100 100"><rect width="100" height="100" fill="#141b2e"/>
+  <path d="M50 90 V26" stroke="url(#gGold)" stroke-width="4.6" stroke-linecap="round"/>
+  <g fill="url(#gGold)">
+    <path d="M50 66 C39 64 32 55 31 43 C43 45 49 53 50 66 Z"/>
+    <path d="M50 66 C61 64 68 55 69 43 C57 45 51 53 50 66 Z"/>
+    <path d="M50 51 C40 49 34 41 33 30 C44 32 49 39 50 51 Z"/>
+    <path d="M50 51 C60 49 66 41 67 30 C56 32 51 39 50 51 Z"/>
+    <path d="M50 37 C43 33 40 25 41 16 C49 19 51 27 50 37 Z"/>
+    <path d="M50 37 C57 33 60 25 59 16 C51 19 49 27 50 37 Z"/>
+  </g>
+  <path d="M50 26 C46 19 46 11 50 4 C54 11 54 19 50 26 Z" fill="url(#gGold)"/>
+  <circle cx="50" cy="90" r="3.2" fill="url(#gGold)"/></svg>`,
+  progress: `<svg viewBox="0 0 100 100"><rect width="100" height="100" fill="#141b2e"/><g stroke="#2c3a5e" stroke-width="2"><line x1="14" y1="30" x2="88" y2="30"/><line x1="14" y1="52" x2="88" y2="52"/><line x1="14" y1="74" x2="88" y2="74"/></g><polyline points="14,68 32,60 50,50 68,34 86,22" fill="none" stroke="url(#gGold)" stroke-width="5" stroke-linecap="round"/><circle cx="86" cy="22" r="6" fill="url(#gGlow)"/><circle cx="86" cy="22" r="3.6" fill="#ffe9a3"/></svg>`,
+  plan: `<svg viewBox="0 0 100 100"><rect width="100" height="100" fill="#141b2e"/><rect x="10" y="30" width="10.6" height="44" rx="3" fill="url(#gGold)" opacity=".45"/><rect x="23.4" y="30" width="10.6" height="44" rx="3" fill="url(#gGold)" opacity=".65"/><rect x="36.8" y="30" width="10.6" height="44" rx="3" fill="url(#gFire)"/><rect x="50.2" y="30" width="10.6" height="44" rx="3" fill="url(#gGold)" opacity=".65"/><rect x="63.6" y="30" width="10.6" height="44" rx="3" fill="url(#gGold)" opacity=".45"/><rect x="77" y="30" width="10.6" height="44" rx="3" fill="url(#gGold)" opacity=".3"/><path d="M10 22 h77.6" stroke="#f5eeda" stroke-width="3.4" stroke-linecap="round"/><circle cx="42" cy="22" r="3.4" fill="#ffe9a3"/><path d="M14 84 h72" stroke="url(#gGold)" stroke-width="3.4" stroke-linecap="round"/></svg>`,
+  body: `<svg viewBox="0 0 100 100"><rect width="100" height="100" fill="#141b2e"/><path d="M14 62 a40 40 0 0 1 72 0" fill="none" stroke="url(#gGold)" stroke-width="9"/><g stroke="#141b2e" stroke-width="3"><line x1="26" y1="42" x2="31" y2="52"/><line x1="50" y1="28" x2="50" y2="40"/><line x1="74" y1="42" x2="69" y2="52"/></g><rect x="8" y="62" width="84" height="9" rx="4" fill="#f5eeda"/><path d="M50 62 v14" stroke="url(#gFire)" stroke-width="5"/></svg>`,
+  settings: `<svg viewBox="0 0 100 100"><rect width="100" height="100" fill="#141b2e"/>
+  <g transform="rotate(38 50 50)">
+    <circle cx="50" cy="24" r="14.5" fill="url(#gGold)"/>
+    <polygon points="41,4 66,10 52,24" fill="#141b2e"/>
+    <circle cx="50" cy="26" r="6.4" fill="#141b2e"/>
+    <rect x="44.6" y="34" width="10.8" height="38" rx="4" fill="url(#gGold)"/>
+    <circle cx="50" cy="79" r="10.6" fill="url(#gGold)"/>
+    <circle cx="50" cy="79" r="5" fill="#141b2e"/>
+    <rect x="47" y="40" width="2.6" height="26" fill="#fff" opacity=".3"/>
+  </g></svg>`
+};
+function streakDays() {
+  let n = 0; let k = todayKey();
+  if (!dayEntries(k).length) k = addDays(k, -1);
+  while (dayEntries(k).length) { n++; k = addDays(k, -1); }
+  return n;
+}
+function centerData() {
+  const s = S(), tg = s.targets, t = todayKey();
+  const tot = dayTotals(t), rem = tg.kcal - tot.kcal;
+  const mode = s.centerStat || "kcal";
+  if (mode === "weight") {
+    const lw = latestWeight();
+    const pct = (lw && s.startKg !== s.goalKg) ? Math.max(0, Math.min(1, (s.startKg - lw.kg) / (s.startKg - s.goalKg))) : 0;
+    return {mode, hero: lw ? dispW(lw.kg) : "—", cap: lw ? `goal ${dispW(s.goalKg)} · ${r0(pct * 100)}% of the way` : "log a weight to start",
+      pct, glow: 0.5, tap: "body"};
+  }
+  if (mode === "next") {
+    const nx = (typeof c25kNext === "function") ? c25kNext() : null;
+    const wk = weekDates();
+    const done = DB.sessions.filter(x => wk.includes(x.date)).length;
+    return {mode, hero: nx ? `W${nx.w + 1} · Run ${nx.r + 1}` : "5K done 🏆",
+      cap: nx ? "next Couch to 5K run" : "program complete", pct: Math.min(1, done / 5), glow: 0.6, tap: "workouts"};
+  }
+  const pct = tg.kcal ? Math.min(1, Math.max(0, tot.kcal / tg.kcal)) : 0;
   const doneToday = DB.sessions.filter(x => x.date === t);
-  const lw = latestWeight();
-  const sw7 = sortedWeights().slice(-7);
-  const wkWithFood = wk.filter(d => dayEntries(d).length);
-  const avgK = wkWithFood.length ? wkWithFood.reduce((a, d) => a + dayTotals(d).kcal, 0) / wkWithFood.length : 0;
-  const goalPct = (lw && s.startKg !== s.goalKg)
-    ? Math.max(0, Math.min(100, (s.startKg - lw.kg) / (s.startKg - s.goalKg) * 100)) : 0;
+  const plan = plannedToday();
+  const hr = new Date().getHours();
+  let cap;
+  if (doneToday.length) cap = `training done ✓ · ${streakDays()} day streak`;
+  else if (hr >= 20) cap = `${streakDays()} day streak · day closes at midnight`;
+  else cap = `${plan.label} today`;
+  return {mode, hero: r0(Math.abs(rem)).toLocaleString(), cap: (rem < 0 ? "kcal over target" : "kcal left") + " · " + cap,
+    pct, glow: Math.max(0.15, 0.9 - pct * 0.65), tap: "nutrition",
+    sub: `${r0(tot.kcal)} of ${tg.kcal} eaten · P ${r0(tot.p)}/${tg.p}g`};
+}
+function centerTap() { show(centerData().tap); }
+function renderHome() {
+  const cd = centerData();
   const firstRun = !DB.entries.length && !DB.weights.length && !DB.sessions.length;
+  const circ = 2 * Math.PI * 80;
+  const nodes = [
+    ["workouts", "Workouts", "50%", "4%"], ["nutrition", "Nutrition", "91%", "27%"],
+    ["progress", "Progress", "91%", "73%"], ["plan", "Plan", "50%", "96%"],
+    ["body", "Body", "9%", "73%"], ["settings", "Settings", "9%", "27%"]
+  ];
   $("#view-home").innerHTML = `
   ${firstRun ? `<div class="card" style="border-color:var(--org)">
-    <h3>👋 Welcome to FIT HQ</h3>
-    <p class="small muted" style="margin:6px 0 10px">Everything is stored privately on this device. Your profile starts with the details already on file — check them in Settings, then log your first meal or weigh-in.</p>
+    <h3>👋 Welcome to The Forge</h3>
+    <p class="small muted" style="margin:6px 0 10px">Everything is stored privately on this device. Your profile starts with the details already on file — check them in Settings, then tap a point on the forge to begin.</p>
     <button class="btn block" onclick="show('settings')">Review my setup</button></div>` : ""}
-  <div class="card">
-    <div class="row">
-      <div class="ringwrap"><svg width="132" height="132">
-        <circle cx="66" cy="66" r="56" stroke="#2a2c33" stroke-width="11" fill="none"/>
-        <circle cx="66" cy="66" r="56" stroke="${rem < 0 ? "var(--red)" : "var(--org)"}" stroke-width="11" fill="none"
-          stroke-linecap="round" stroke-dasharray="${circ}" stroke-dashoffset="${circ * (1 - Math.min(1, pct / 100))}"
-          transform="rotate(-90 66 66)"/></svg>
-        <div class="ctr"><div class="kcal-num">${r0(Math.abs(rem))}</div>
-        <div class="small muted">${rem < 0 ? "kcal over" : "kcal left"}</div></div></div>
-      <div class="grow">
-        <div class="macroline"><span>Protein</span><b>${r0(tot.p)} / ${tg.p}g</b></div>${bar(tg.p ? tot.p / tg.p * 100 : 0, "g")}
-        <div class="macroline"><span>Carbs</span><b>${r0(tot.c)} / ${tg.c}g</b></div>${bar(tg.c ? tot.c / tg.c * 100 : 0, "b")}
-        <div class="macroline"><span>Fat</span><b>${r0(tot.f)} / ${tg.f}g</b></div>${bar(tg.f ? tot.f / tg.f * 100 : 0, "gold")}
-        <p class="small muted" style="margin-top:8px">${r0(tot.kcal)} of ${tg.kcal} kcal eaten</p>
-      </div>
-    </div>
-    <div class="row" style="margin-top:12px">
-      <button class="btn grow" onclick="show('nutrition')">＋ Add food</button>
-      <button class="btn ghost grow" onclick="quickWeight()">⚖️ Log weight</button>
+  <div class="hub">
+    <svg class="hexsvg" viewBox="0 0 100 100">
+      <polygon points="50,2 91.6,26 91.6,74 50,98 8.4,74 8.4,26" fill="none" stroke="#d4a72c" stroke-width="1.1"/>
+      <polygon points="50,7.5 86.8,28.7 86.8,71.3 50,92.5 13.2,71.3 13.2,28.7" fill="none" stroke="#d4a72c" stroke-width=".55" opacity=".5"/>
+      <g fill="#f6d47a"><circle cx="50" cy="2" r="1.5"/><circle cx="91.6" cy="26" r="1.5"/><circle cx="91.6" cy="74" r="1.5"/><circle cx="50" cy="98" r="1.5"/><circle cx="8.4" cy="74" r="1.5"/><circle cx="8.4" cy="26" r="1.5"/></g>
+    </svg>
+    ${nodes.map(([v, label, x, y]) => `<button class="node" style="left:${x};top:${y}" onclick="hubGo('${v}',event)"><span class="bub">${ICONS[v]}</span><span class="nl">${label}</span></button>`).join("")}
+    <div class="hubcenter" onclick="centerTap()" role="button" aria-label="Centre stat">
+      <svg viewBox="0 0 178 178" style="width:100%;height:100%">
+        <circle cx="89" cy="89" r="80" stroke="#2c3a5e" stroke-width="4.5" fill="rgba(16,24,43,.72)"/>
+        <circle cx="89" cy="89" r="80" stroke="#d4a72c" stroke-width="4.5" fill="none" stroke-linecap="round"
+          stroke-dasharray="${circ}" stroke-dashoffset="${circ * (1 - cd.pct)}" transform="rotate(-90 89 89)"/>
+        <circle cx="89" cy="76" r="46" fill="url(#gGlow)" opacity="${cd.glow}"/>
+        <g>
+          <path d="M89 42 c8.6 14.4 20 22.2 20 37.4 a20 20 0 1 1 -40 0 C69 64.2 80.4 56.4 89 42z" fill="#43331a"/>
+          <clipPath id="flameClip"><rect x="59" y="${(99.4 - 57.4 * cd.pct).toFixed(1)}" width="60" height="${(57.4 * cd.pct).toFixed(1)}"/></clipPath>
+          <g clip-path="url(#flameClip)"><path d="M89 42 c8.6 14.4 20 22.2 20 37.4 a20 20 0 1 1 -40 0 C69 64.2 80.4 56.4 89 42z" fill="url(#gFire)"/></g>
+          <path d="M89 68 c4.2 6.8 9.4 10.4 9.4 17.6 a9.4 9.4 0 1 1 -18.8 0 C79.6 78.4 84.8 74.8 89 68z" fill="#fff3c4" opacity=".92"/>
+        </g>
+      </svg>
+      <div class="ctext"><div class="cnum">${esc(cd.hero)}</div><div class="ccap">${esc(cd.cap)}</div></div>
     </div>
   </div>
+  <p class="small muted" style="text-align:center;margin-top:10px">${cd.mode === "kcal" ? esc(cd.sub || "") : "Tap the centre to open · tap a point to enter"}</p>`;
+}
+
+/* ---------- PLAN (week at a glance) ---------- */
+const TYPE_ICON = {run: "🏃", dumbbell: "🏋️", boxing: "🥊", core: "🔥", yoga: "🧘"};
+function renderPlan() {
+  const wk = weekDates(), t = todayKey();
+  const nx = (typeof c25kNext === "function") ? c25kNext() : null;
+  const wkSessions = DB.sessions.filter(x => wk.includes(x.date));
+  const wkFood = wk.filter(d => dayEntries(d).length);
+  const avgK = wkFood.length ? wkFood.reduce((a, d) => a + dayTotals(d).kcal, 0) / wkFood.length : 0;
+  const cells = wk.map(d => {
+    const isT = d === t, future = d > t;
+    const sess = DB.sessions.filter(x => x.date === d);
+    const tot = dayTotals(d);
+    const icons = sess.map(x => TYPE_ICON[x.type] || "🏋️").join(" ");
+    const plan = plannedFor(d);
+    return `<div class="daycell ${isT ? "today" : ""} ${future ? "future" : ""}">
+      <div class="dl">${parseKey(d).toLocaleDateString(undefined, {weekday: "short"})}</div>
+      <div class="dn">${parseKey(d).getDate()}</div>
+      ${future ? `<div class="dk">${plan.short}</div>`
+        : `<div class="di">${icons || "·"}</div><div class="dk">${dayEntries(d).length ? `<b>${r0(tot.kcal)}</b> kcal` : "no food"}</div>`}
+    </div>`;
+  }).join("");
+  $("#view-plan").innerHTML = `
+  <div class="card tight"><div class="row between"><h3>Week at a glance</h3><span class="small muted">${fmtDay(wk[0])} – ${fmtDay(wk[6])}</span></div>
+    <div class="weekgrid" style="margin-top:10px">${cells}</div>
+    <p class="small muted" style="margin-top:10px">Future days show your training rhythm — Mon/Wed/Fri strength, Tue/Thu/Sat yoga, Sunday rest.</p>
+  </div>
+  <div class="card"><h3>Up next</h3>
+    ${nx ? `<div class="item"><div class="grow"><div class="t">🏃 Couch to 5K — Week ${nx.w + 1}, Run ${nx.r + 1}</div><div class="s">Your next scheduled run</div></div></div>`
+         : `<div class="item"><div class="grow"><div class="t">🏆 Couch to 5K complete</div><div class="s">All 27 runs done — time to pick the next mountain</div></div></div>`}
+    <div class="item"><div class="grow"><div class="t">${esc(plannedToday().label)}</div><div class="s">Today's rhythm</div></div></div>
+    <button class="btn block" style="margin-top:10px" onclick="show('workouts')">Open Workouts</button>
+  </div>
+  <div class="grid2">
+    <div class="card tight"><div class="stat"><div class="v">${wkSessions.length}</div><div class="k">Workouts this week</div></div></div>
+    <div class="card tight"><div class="stat"><div class="v">${wkFood.length ? r0(avgK) : "—"}</div><div class="k">Avg kcal / logged day</div></div></div>
+  </div>`;
+}
+
+/* ---------- BODY (water · weight · measurements) ---------- */
+function renderBody() {
+  const t = todayKey(), tg = S().targets;
+  const wml = waterFor(t), lw = latestWeight();
+  const sw = sortedWeights();
+  const trend = sw.length > 1 ? `${dispW(sw[0].kg)} → ${dispW(sw[sw.length - 1].kg)} across ${sw.length} weigh-ins` : "Log a weight to start your trend";
+  const byType = {};
+  for (const m of DB.measures) if (!byType[m.type] || byType[m.type].date < m.date) byType[m.type] = m;
+  const latest = Object.values(byType).sort((a, b) => a.type < b.type ? -1 : 1);
+  $("#view-body").innerHTML = `
   <div class="card tight">
     <div class="row between"><h3>💧 Water</h3><span class="small muted">${wml} / ${tg.waterMl} ml</span></div>
     ${bar(tg.waterMl ? wml / tg.waterMl * 100 : 0, "b")}
@@ -193,25 +332,23 @@ function renderHome() {
     </div>
   </div>
   <div class="card">
-    <div class="row between"><h3>Today's training</h3><span class="small muted">${esc(plan.label)}</span></div>
-    ${doneToday.length ? doneToday.map(x => `<div class="item"><div class="grow"><div class="t">✅ ${esc(x.title)}</div><div class="s">${x.mins} min</div></div></div>`).join("")
-      : `<p class="small muted" style="margin:8px 0">Nothing logged yet today.</p>`}
-    <button class="btn grn block" style="margin-top:8px" onclick="show('workouts')">▶ Start workout</button>
-    <p class="small muted" style="margin-top:10px">This week: <b style="color:var(--ink)">${wkSessions.length} workout${wkSessions.length === 1 ? "" : "s"}</b> completed</p>
+    <div class="row between"><h3>⚖️ Weight</h3><span class="small muted">goal ${dispW(S().goalKg)}</span></div>
+    <div class="stat" style="margin:8px 0"><div class="v" style="font-size:1.9rem">${lw ? dispW(lw.kg) : "—"}</div><div class="k">Current</div></div>
+    <p class="small muted" style="text-align:center">${esc(trend)}</p>
+    <button class="btn block" style="margin-top:10px" onclick="quickWeight()">Log weight</button>
+    <button class="btn ghost block" style="margin-top:8px" onclick="show('progress')">Weight history & chart</button>
   </div>
-  <div class="grid2">
-    <div class="card tight"><div class="stat"><div class="v">${lw ? dispW(lw.kg) : "—"}</div><div class="k">Current weight</div></div>
-      ${sw7.length > 1 ? `<p class="small muted" style="text-align:center;margin-top:4px">${dispW(sw7[0].kg)} → ${dispW(sw7[sw7.length-1].kg)} (last ${sw7.length})</p>` : `<p class="small muted" style="text-align:center;margin-top:4px">Log a weight to see your trend</p>`}</div>
-    <div class="card tight"><div class="stat"><div class="v">${wkWithFood.length ? r0(avgK) : "—"}</div><div class="k">Avg kcal / day this week</div></div>
-      <p class="small muted" style="text-align:center;margin-top:4px">${wkWithFood.length} day${wkWithFood.length === 1 ? "" : "s"} logged · target ${tg.kcal}</p></div>
-  </div>
-  ${lw ? `<div class="card tight"><div class="row between"><h3>Goal progress</h3><span class="small muted">${dispW(s.startKg)} → ${dispW(s.goalKg)}</span></div>
-    ${bar(goalPct)}<p class="small muted" style="margin-top:6px">${r0(goalPct)}% of the way there. Daily weigh-ins bounce around — the trend is what counts.</p></div>` : ""}
-  `;
+  <div class="card">
+    <div class="row between"><h3>📏 Measurements</h3><span class="small muted">${DB.measures.length} logged</span></div>
+    ${latest.length ? `<div class="list">${latest.map(m => `<div class="item"><div class="grow"><div class="t">${esc(m.type)}</div><div class="s">${fmtDay(m.date)}</div></div><span class="kc">${m.cm} cm</span></div>`).join("")}</div>`
+      : `<p class="small muted" style="margin:8px 0">No measurements yet — waist is a great first one; it moves even when the scale stalls.</p>`}
+    <button class="btn block" style="margin-top:8px" onclick="addMeasure()">Add measurement</button>
+  </div>`;
 }
+
 function addWater(ml, date = todayKey()) {
   DB.water.push({id: uid(), date, ml}); saveDB();
-  if (curView === "home") renderHome(); if (curView === "nutrition" && window.renderNutrition) renderNutrition();
+  if (curView === "home") renderHome(); if (curView === "body") renderBody(); if (curView === "nutrition" && window.renderNutrition) renderNutrition();
   toast(`+${ml} ml water`);
 }
 function customWater() {
@@ -230,11 +367,12 @@ function quickWeight(date = todayKey()) {
     const ex = DB.weights.find(w => w.date === d);
     if (ex) ex.kg = inputW(v); else DB.weights.push({id: uid(), date: d, kg: inputW(v)});
     saveDB(); closeSheet(); toast("Weight saved");
-    if (curView === "home") renderHome(); if (curView === "progress" && window.renderProgress) renderProgress();
+    if (curView === "home") renderHome(); if (curView === "body") renderBody(); if (curView === "progress" && window.renderProgress) renderProgress();
   };
 }
 
 /* ---------- SETTINGS ---------- */
+function setCenterStat(v) { S().centerStat = v; saveDB(); renderSettings(); toast("Centre updated"); }
 function renderSettings() {
   const s = S(), u = s.units;
   const wNow = latestWeight()?.kg ?? s.startKg;
@@ -267,6 +405,14 @@ function renderSettings() {
     <p class="small muted" style="margin-top:10px">Calculated targets use the Mifflin-St Jeor equation with a moderate 500 kcal deficit for weight loss — a starting point, not medical advice. Adjust any time based on your actual trend.</p>
     <label style="margin-top:12px"><span style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" id="tgExBack" style="width:auto;margin-top:2px" ${s.exerciseBack ? "checked" : ""}> <span>Add exercise calories back to my food budget <span class="dim">(off by default — workout and wearable calorie estimates are often inflated, which can stall weight loss)</span></span></span></label>
   </div>
+  <div class="card"><h3>Hub centre</h3>
+    <p class="small muted">What the flame at the heart of the hub shows. The flame fills as the day's calories are eaten, and its glow dims as you near your target.</p>
+    <div class="seg" style="margin-top:10px">
+      <button class="${(s.centerStat || "kcal") === "kcal" ? "on" : ""}" onclick="setCenterStat('kcal')">Calories left</button>
+      <button class="${s.centerStat === "weight" ? "on" : ""}" onclick="setCenterStat('weight')">Weight</button>
+      <button class="${s.centerStat === "next" ? "on" : ""}" onclick="setCenterStat('next')">Next workout</button>
+    </div>
+  </div>
   <div class="card"><h3>Your data</h3>
     <p class="small muted">Everything lives only in this browser on this device. Export a backup regularly — clearing browser data or switching phones erases it otherwise.</p>
     <div class="row" style="margin-top:10px"><button class="btn ghost grow" id="dtExp">⬇ Export backup</button>
@@ -276,7 +422,7 @@ function renderSettings() {
     <p class="small muted" style="margin-top:10px">${DB.entries.length} food entries · ${DB.foods.length} custom foods · ${DB.meals.length} saved meals · ${DB.weights.length} weigh-ins · ${DB.sessions.length} workouts logged</p>
   </div>
   <div class="card"><h3>About</h3>
-    <p class="small muted">FIT HQ v1 · Free forever, no account, no tracking. Food search (optional, in Nutrition) uses Open Food Facts — only the words you search are sent. Core features work fully offline.</p>
+    <p class="small muted">The Forge · Free forever, no account, no tracking. Food search (optional, in Nutrition) uses Open Food Facts — only the words you search are sent. Core features work fully offline.</p>
   </div>`;
   $("#pfSave").onclick = () => {
     s.name = $("#pfName").value.trim(); s.age = Number($("#pfAge").value) || s.age;
@@ -303,7 +449,7 @@ function renderSettings() {
   $("#dtExp").onclick = exportData;
   $("#dtImp").onclick = () => $("#dtFile").click();
   $("#dtFile").onchange = e => importData(e.target.files[0]);
-  $("#dtReset").onclick = () => confirmSheet("Reset FIT HQ?", "This deletes ALL data on this device — diary, weights, workouts, settings. Export a backup first if you might want it back.", "Delete everything", () => {
+  $("#dtReset").onclick = () => confirmSheet("Reset The Forge?", "This deletes ALL data on this device — diary, weights, workouts, settings. Export a backup first if you might want it back.", "Delete everything", () => {
     localStorage.removeItem(DB_KEY); loadDB(); saveDB(); toast("Fresh start"); show("home");
   });
 }
@@ -311,7 +457,7 @@ function exportData() {
   const blob = new Blob([JSON.stringify(DB, null, 1)], {type: "application/json"});
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = "fithq-backup-" + todayKey() + ".json";
+  a.download = "theforge-backup-" + todayKey() + ".json";
   a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
   toast("Backup downloaded");
 }
@@ -321,7 +467,7 @@ function importData(file) {
   rd.onload = () => {
     let d; try { d = JSON.parse(rd.result); } catch (e) { toast("That file isn't valid JSON"); return; }
     if (!d || typeof d !== "object" || !d.settings || ![ "entries","foods","weights"].every(k => Array.isArray(d[k]))) {
-      toast("That doesn't look like a FIT HQ backup"); return;
+      toast("That doesn't look like a Forge backup"); return;
     }
     openSheet(`<h3>Import backup</h3>
       <p class="small muted" style="margin:6px 0">Backup contains ${d.entries.length} food entries, ${d.weights.length} weigh-ins, ${(d.sessions || []).length} workouts.</p>
