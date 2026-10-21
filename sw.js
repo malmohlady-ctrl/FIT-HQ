@@ -37,3 +37,5 @@ self.addEventListener("fetch", e => {
     }
   })());
 });
+
+/* build refresh */
