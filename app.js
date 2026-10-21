@@ -278,8 +278,7 @@ function renderHome() {
       </svg>
       <div class="ctext"><div class="cnum">${esc(cd.hero)}</div><div class="ccap">${esc(cd.cap)}</div></div>
     </div>
-  </div>
-  ${typeof fitnessStripHTML === "function" ? fitnessStripHTML() : ""}`;
+  </div>`;
 }
 
 /* ---------- PLAN (week at a glance) ---------- */
