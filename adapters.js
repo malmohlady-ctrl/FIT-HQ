@@ -187,3 +187,29 @@ function appCardsHTML() {
     <p class="small" style="margin-top:8px">${s.sub}<br><span class="muted">${s.foot}</span></p>
     <button class="btn block" style="margin-top:10px" onclick="location.href='${m.url}'">▶ Open ${m.name}</button></div>`; }).join("");
 }
+
+/* ---------- Workouts hub (twin of the main hub: 3 points + week centre) ---------- */
+function workoutHubHTML() {
+  const w = weekActivity(), nx = upNext();
+  const pos = {couch: ["50%", "5%"], corner: ["13%", "76%"], yoga: ["87%", "76%"]};
+  const node = k => { const m = APP_META[k], st = appStatLines(k);
+    return `<button class="node wnode" style="left:${pos[k][0]};top:${pos[k][1]}" onclick="location.href='${m.url}'">
+      <span class="bub wbub"><img src="${m.url}icon-192.png" alt="" onerror="this.remove()">
+      <span class="wemoji">${m.icon}</span></span>
+      <span class="nl">${m.name}<span class="nsub2">${st.head}</span><span class="nsub2 dim">${st.sub}</span></span></button>`; };
+  return `<div class="hub whub">
+    <svg class="hexsvg" viewBox="0 0 100 100">
+      <circle cx="50" cy="52" r="34" fill="none" stroke="#d4a72c" stroke-width=".55" opacity=".45"/>
+      <polygon points="50,5 87,76 13,76" fill="none" stroke="#d4a72c" stroke-width="1" opacity=".8"/>
+      <g fill="#f6d47a"><circle cx="50" cy="5" r="1.5"/><circle cx="87" cy="76" r="1.5"/><circle cx="13" cy="76" r="1.5"/></g>
+    </svg>
+    ${node("couch")}${node("corner")}${node("yoga")}
+    <div class="wcenter">
+      <div class="wck">THIS WEEK</div>
+      <div class="wcnum">${w.count}</div>
+      <div class="wccap">workout${w.count === 1 ? "" : "s"} · ${w.days} active day${w.days === 1 ? "" : "s"}<br>${w.mins} minutes trained</div>
+      <div class="wcnext">Up next · <b>${esc(nx.app)}</b></div>
+    </div>
+  </div>
+  <p class="small muted" style="text-align:center;margin-top:4px">Tap a point to open the app — your progress here updates from each app's own records.</p>`;
+}
