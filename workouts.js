@@ -134,12 +134,7 @@ function drawRoute(cv, track) {
 }
 function renderPlayer() {
   const s = PL.steps[PL.idx], next = PL.steps[PL.idx + 1];
-  const recent = (typeof unifiedHistory === "function" ? unifiedHistory(5) : []);
-  const recentHTML = recent.length ? `<div class="card"><h3>🕘 Recent activity</h3><div class="list">${recent.map(r => `
-    <div class="item"><div class="grow"><div class="t">${esc(r.name)} ${r.status === "partial" ? `<span class="dim">· partial</span>` : ""}</div>
-    <div class="s">${esc(r.app)} · ${fmtDayShort(r.date)}${r.durationSec ? " · " + Math.round(r.durationSec / 60) + " min" : ""}${r.meta ? " · " + esc(r.meta) : ""}</div></div></div>`).join("")}</div></div>` : "";
-  $("#view-workouts").innerHTML = (typeof workoutHubHTML === "function" ? workoutHubHTML() : "") + recentHTML + `
-  <p class="small muted" style="text-align:center;margin:16px 0 10px">— or use the Forge built-in player (same routines, inside The Forge) —</p>` + `
+  $("#view-workouts").innerHTML = `
   <div class="card" style="text-align:center">
     <p class="small muted">${esc(PL.title)}</p>
     <h2 style="margin:6px 0 0">${esc(s.label)}</h2>
@@ -309,10 +304,16 @@ function startYoga(idx) {
 /* ---------- workouts home ---------- */
 function renderWorkouts() {
   if (PL) { renderPlayer(); return; }
+  const recent = (typeof unifiedHistory === "function" ? unifiedHistory(5) : []);
+  const recentHTML = recent.length ? `<div class="card"><h3>🕘 Recent activity</h3><div class="list">${recent.map(r => `
+    <div class="item"><div class="grow"><div class="t">${esc(r.name)} ${r.status === "partial" ? `<span class="dim">· partial</span>` : ""}</div>
+    <div class="s">${esc(r.app)} · ${fmtDayShort(r.date)}${r.durationSec ? " · " + Math.round(r.durationSec / 60) + " min" : ""}${r.meta ? " · " + esc(r.meta) : ""}</div></div></div>`).join("")}</div></div>` : "";
+  const hubHTML = (typeof workoutHubHTML === "function" ? workoutHubHTML() : "") + recentHTML + `
+  <p class="small muted" style="text-align:center;margin:16px 0 10px">— or use the Forge built-in player (same routines, inside The Forge) —</p>`;
   const nx = c25kNext();
   const runsDone = DB.sessions.filter(x => x.type === "run" && x.detail?.program === "c25k").length;
   const hist = DB.sessions.slice().reverse().slice(0, 8);
-  $("#view-workouts").innerHTML = `
+  $("#view-workouts").innerHTML = hubHTML + `
   <div class="card"><div class="row between"><h3>🏃 Couch to 5K</h3><span class="small muted">${runsDone}/27 runs</span></div>
     ${nx ? `<p class="small muted" style="margin:6px 0">Up next: <b style="color:var(--ink)">Week ${nx.w + 1} · Run ${nx.r + 1}</b> — ${esc(C25K_PLANS[nx.w].desc)}</p>
     <button class="btn block" onclick="startRun(${nx.w},${nx.r})">▶ Start Week ${nx.w + 1} Run ${nx.r + 1}</button>`
