@@ -49,6 +49,7 @@ okA("week: active days = 1 (all today)", w.days === 1);
 okA("strip renders with all three apps", ["Couch to 5K", "Home Corner", "Namastay Home"].every(n => fitnessStripHTML().includes(n)));
 okA("panels render unified history", fitnessPanelsHTML().includes("Recent activity"));
 okA("workout hub renders three app points", ["Couch to 5K", "Home Corner", "Namastay Home"].every(n => workoutHubHTML().includes(n)));
+okA("hub points carry the winner logos (3 inline SVGs)", (workoutHubHTML().match(/viewBox="0 0 100 100"/g) || []).length === 3);
 okA("workout hub centre carries the week", workoutHubHTML().includes("THIS WEEK") && workoutHubHTML().includes("active day"));
 okA("workout hub contains NO calorie content", !/kcal|calorie/i.test(workoutHubHTML()));
 okA("upNext returns something sane", !!upNext().app);
