@@ -134,7 +134,8 @@ function drawRoute(cv, track) {
 }
 function renderPlayer() {
   const s = PL.steps[PL.idx], next = PL.steps[PL.idx + 1];
-  $("#view-workouts").innerHTML = `
+  $("#view-workouts").innerHTML = (typeof appCardsHTML === "function" ? appCardsHTML() : "") + `
+  <p class="small muted" style="text-align:center;margin:16px 0 10px">— or use the Forge built-in player (same routines, inside The Forge) —</p>` + `
   <div class="card" style="text-align:center">
     <p class="small muted">${esc(PL.title)}</p>
     <h2 style="margin:6px 0 0">${esc(s.label)}</h2>
