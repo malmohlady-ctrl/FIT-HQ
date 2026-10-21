@@ -30,5 +30,14 @@ let st = document.querySelector("#view-settings").innerHTML;
 ok("settings has hub centre control", st.includes("Hub centre") && st.includes("setCenterStat"));
 show("plan"); ok("router lands on plan", curView==="plan");
 show("home"); ok("router returns home", curView==="home");
+
+/* --- Workouts home placement: hub above the built-in player --- */
+localStorage.setItem("first5k.v1", JSON.stringify({completed: [], selectedWeek: 0, selectedRun: 0}));
+window.renderWorkouts = renderWorkouts; /* browser semantics: declarations attach to window; the node stub needs this for show() dispatch */
+show("workouts");
+const wkHTML = document.querySelector("#view-workouts").innerHTML;
+ok("workouts home shows the hub", wkHTML.includes("whub"));
+ok("hub centre shows THIS WEEK", wkHTML.includes("THIS WEEK"));
+ok("hub sits ABOVE the built-in player", wkHTML.indexOf("whub") > -1 && wkHTML.indexOf("whub") < wkHTML.indexOf("Dumbbell studio"));
 console.log(pass+" passed, "+fail+" failed");
 process.exit(fail?1:0);
