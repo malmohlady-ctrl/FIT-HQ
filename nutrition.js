@@ -41,6 +41,7 @@ function renderNutrition() {
   }).join("");
   const w = waterFor(nutDate), tg = S().targets;
   el.innerHTML = `
+  <button class="btn block" style="margin-bottom:10px" onclick="openPhotoLog()">📸 Analyse meal photo</button>
   <div class="datebar">
     <button class="iconbtn" onclick="nutNav(-1)">‹</button>
     <div class="grow" style="text-align:center"><div class="d">${nutDate === todayKey() ? "Today" : fmtDay(nutDate)}</div>
