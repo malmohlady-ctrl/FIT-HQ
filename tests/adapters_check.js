@@ -48,8 +48,9 @@ okA("week: active days = 1 (all today)", w.days === 1);
 
 okA("strip renders with all three apps", ["Couch to 5K", "Home Corner", "Namastay Home"].every(n => fitnessStripHTML().includes(n)));
 okA("panels render unified history", fitnessPanelsHTML().includes("Recent activity"));
-okA("cards render launch buttons", ["Open Couch to 5K", "Open Home Corner", "Open Namastay Home"].every(n => appCardsHTML().includes(n)));
-okA("cards contain NO calorie content", !/kcal|calorie/i.test(appCardsHTML()));
+okA("workout hub renders three app points", ["Couch to 5K", "Home Corner", "Namastay Home"].every(n => workoutHubHTML().includes(n)));
+okA("workout hub centre carries the week", workoutHubHTML().includes("THIS WEEK") && workoutHubHTML().includes("active day"));
+okA("workout hub contains NO calorie content", !/kcal|calorie/i.test(workoutHubHTML()));
 okA("upNext returns something sane", !!upNext().app);
 okA("photo food match: library hit", (phMatchFood("greek yogurt bowl") || {}).id === "f1");
 okA("photo food match: no false positive", phMatchFood("sushi platter deluxe") === null);
