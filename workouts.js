@@ -134,7 +134,11 @@ function drawRoute(cv, track) {
 }
 function renderPlayer() {
   const s = PL.steps[PL.idx], next = PL.steps[PL.idx + 1];
-  $("#view-workouts").innerHTML = (typeof appCardsHTML === "function" ? appCardsHTML() : "") + `
+  const recent = (typeof unifiedHistory === "function" ? unifiedHistory(5) : []);
+  const recentHTML = recent.length ? `<div class="card"><h3>🕘 Recent activity</h3><div class="list">${recent.map(r => `
+    <div class="item"><div class="grow"><div class="t">${esc(r.name)} ${r.status === "partial" ? `<span class="dim">· partial</span>` : ""}</div>
+    <div class="s">${esc(r.app)} · ${fmtDayShort(r.date)}${r.durationSec ? " · " + Math.round(r.durationSec / 60) + " min" : ""}${r.meta ? " · " + esc(r.meta) : ""}</div></div></div>`).join("")}</div></div>` : "";
+  $("#view-workouts").innerHTML = (typeof workoutHubHTML === "function" ? workoutHubHTML() : "") + recentHTML + `
   <p class="small muted" style="text-align:center;margin:16px 0 10px">— or use the Forge built-in player (same routines, inside The Forge) —</p>` + `
   <div class="card" style="text-align:center">
     <p class="small muted">${esc(PL.title)}</p>
