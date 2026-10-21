@@ -199,15 +199,11 @@ const ICONS = {
   <path d="M31 69 h38" stroke="#f5eeda" stroke-width="2"/></svg>`,
   body: `<svg viewBox="0 0 100 100"><rect width="100" height="100" fill="#141b2e"/><path d="M14 62 a40 40 0 0 1 72 0" fill="none" stroke="url(#gGold)" stroke-width="9"/><g stroke="#141b2e" stroke-width="3"><line x1="26" y1="42" x2="31" y2="52"/><line x1="50" y1="28" x2="50" y2="40"/><line x1="74" y1="42" x2="69" y2="52"/></g><rect x="8" y="62" width="84" height="9" rx="4" fill="#f5eeda"/><path d="M50 62 v14" stroke="url(#gFire)" stroke-width="5"/></svg>`,
   settings: `<svg viewBox="0 0 100 100"><rect width="100" height="100" fill="#141b2e"/>
-  <g transform="rotate(38 50 50)">
-    <circle cx="50" cy="24" r="14.5" fill="url(#gGold)"/>
-    <polygon points="41,4 66,10 52,24" fill="#141b2e"/>
-    <circle cx="50" cy="26" r="6.4" fill="#141b2e"/>
-    <rect x="44.6" y="34" width="10.8" height="38" rx="4" fill="url(#gGold)"/>
-    <circle cx="50" cy="79" r="10.6" fill="url(#gGold)"/>
-    <circle cx="50" cy="79" r="5" fill="#141b2e"/>
-    <rect x="47" y="40" width="2.6" height="26" fill="#fff" opacity=".3"/>
-  </g></svg>`
+  <polygon points="82,50 66,77.7 34,77.7 18,50 34,22.3 66,22.3" fill="url(#gGold)"/>
+  <circle cx="50" cy="50" r="14.5" fill="#141b2e"/>
+  <circle cx="50" cy="50" r="14.5" fill="none" stroke="#f5eeda" stroke-width="1.6" opacity=".55"/>
+  <path d="M41 41 l18 18" stroke="#f5eeda" stroke-width="2.4" opacity=".8"/>
+  <circle cx="50" cy="50" r="3.2" fill="url(#gFire)"/></svg>`
 };
 function streakDays() {
   let n = 0; let k = todayKey();
