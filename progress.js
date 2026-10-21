@@ -65,7 +65,7 @@ function renderProgress() {
     <div class="grid3" style="margin:8px 0">
       <div class="stat"><div class="v">${start ? dispW(start.kg) : "—"}</div><div class="k">Start</div></div>
       <div class="stat"><div class="v">${cur ? dispW(cur.kg) : "—"}</div><div class="k">Current</div></div>
-      <div class="stat"><div class="v" style="color:${change < 0 ? "var(--grn)" : change > 0 ? "var(--red)" : "inherit"}">${ws.length > 1 ? (change > 0 ? "+" : "") + dispW(Math.abs(change)).replace(/^-/, "") : "—"}</div><div class="k">Change</div></div>
+      <div class="stat"><div class="v" style="color:${change < 0 ? "var(--grn)" : change > 0 ? "var(--red)" : "inherit"}">${ws.length > 1 ? (change > 0 ? "+" : change < 0 ? "−" : "") + dispW(Math.abs(change)) : "—"}</div><div class="k">Change</div></div>
     </div>
     <p class="small muted">Goal: ${dispW(s.goalKg)} · Single weigh-ins bounce with water and meals — judge the orange weekly-average line, not single days.</p>
     <div class="row" style="margin:10px 0 4px">
