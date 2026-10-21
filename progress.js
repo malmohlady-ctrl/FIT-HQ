@@ -133,7 +133,7 @@ function addMeasure() {
   $("#amGo").onclick = () => {
     const v = Number($("#amV").value); if (!(v > 0)) return;
     DB.measures.push({id: uid(), date: $("#amD").value || todayKey(), type: $("#amT").value, cm: v});
-    saveDB(); closeSheet(); renderProgress(); toast("Measurement saved");
+    saveDB(); closeSheet(); renderProgress(); if (curView === "body" && window.renderBody) renderBody(); toast("Measurement saved");
   };
 }
-function delMeasure(id) { DB.measures = DB.measures.filter(x => x.id !== id); saveDB(); renderProgress(); }
+function delMeasure(id) { DB.measures = DB.measures.filter(x => x.id !== id); saveDB(); renderProgress(); if (curView === "body" && window.renderBody) renderBody(); }
