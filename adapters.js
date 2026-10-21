@@ -192,11 +192,11 @@ function appCardsHTML() {
 function workoutHubHTML() {
   const w = weekActivity(), nx = upNext();
   const pos = {couch: ["50%", "5%"], corner: ["13%", "76%"], yoga: ["87%", "76%"]};
-  const node = k => { const m = APP_META[k], st = appStatLines(k);
+  const node = k => { const m = APP_META[k];
     return `<button class="node wnode" style="left:${pos[k][0]};top:${pos[k][1]}" onclick="location.href='${m.url}'">
       <span class="bub wbub"><img src="${m.url}icon-192.png" alt="" onerror="this.remove()">
       <span class="wemoji">${m.icon}</span></span>
-      <span class="nl">${m.name}<span class="nsub2">${st.head}</span><span class="nsub2 dim">${st.sub}</span></span></button>`; };
+      <span class="nl">${m.name}</span></button>`; };
   return `<div class="hub whub">
     <svg class="hexsvg" viewBox="0 0 100 100">
       <circle cx="50" cy="52" r="34" fill="none" stroke="#d4a72c" stroke-width=".55" opacity=".45"/>
@@ -210,6 +210,5 @@ function workoutHubHTML() {
       <div class="wccap">workout${w.count === 1 ? "" : "s"} · ${w.days} active day${w.days === 1 ? "" : "s"}<br>${w.mins} minutes trained</div>
       <div class="wcnext">Up next · <b>${esc(nx.app)}</b></div>
     </div>
-  </div>
-  <p class="small muted" style="text-align:center;margin-top:4px">Tap a point to open the app — your progress here updates from each app's own records.</p>`;
+  </div>`;
 }
