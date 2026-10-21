@@ -1,8 +1,8 @@
-/* FIT HQ service worker — cache-first offline shell.
+/* The Forge service worker — cache-first offline shell.
    Cache name is namespaced (fithq-) and cleanup only deletes fithq-*
    caches, never other apps' caches on this origin.
    Cross-origin requests (Open Food Facts) are never intercepted. */
-const CACHE = "fithq-v2";
+const CACHE = "forge-v1";
 const ASSETS = ["./", "./index.html", "./app.js", "./nutrition.js", "./workouts.js",
   "./progress.js", "./extras.js", "./data.js", "./manifest.json",
   "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png"];
@@ -16,7 +16,7 @@ self.addEventListener("install", e => {
 self.addEventListener("activate", e => {
   e.waitUntil((async () => {
     const keys = await caches.keys();
-    await Promise.all(keys.filter(k => k.startsWith("fithq-") && k !== CACHE).map(k => caches.delete(k)));
+    await Promise.all(keys.filter(k => (k.startsWith("fithq-") || k.startsWith("forge-")) && k !== CACHE).map(k => caches.delete(k)));
     await self.clients.claim();
   })());
 });
@@ -37,5 +37,3 @@ self.addEventListener("fetch", e => {
     }
   })());
 });
-
-/* build refresh */
