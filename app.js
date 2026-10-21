@@ -184,12 +184,19 @@ const ICONS = {
   </g>
   <path d="M50 26 C46 19 46 11 50 4 C54 11 54 19 50 26 Z" fill="url(#gGold)"/>
   <circle cx="50" cy="90" r="3.2" fill="url(#gGold)"/></svg>`,
-  progress: `<svg viewBox="0 0 100 100"><rect width="100" height="100" fill="#141b2e"/><g stroke="#2c3a5e" stroke-width="2"><line x1="14" y1="30" x2="88" y2="30"/><line x1="14" y1="52" x2="88" y2="52"/><line x1="14" y1="74" x2="88" y2="74"/></g><polyline points="14,68 32,60 50,50 68,34 86,22" fill="none" stroke="url(#gGold)" stroke-width="5" stroke-linecap="round"/><circle cx="86" cy="22" r="6" fill="url(#gGlow)"/><circle cx="86" cy="22" r="3.6" fill="#ffe9a3"/></svg>`,
-  plan: `<svg viewBox="0 0 100 100"><rect width="100" height="100" fill="#141b2e"/>
+  progress: `<svg viewBox="0 0 100 100"><rect width="100" height="100" fill="#141b2e"/>
   <path d="M10 86 L21 77 L32 80 L43 66 L54 69 L65 54 L76 46 L82 37" fill="none" stroke="url(#gGold)" stroke-width="2.2" stroke-dasharray="1 7" stroke-linecap="round"/>
   <g fill="#f5eeda"><circle cx="10" cy="86" r="2.9"/><circle cx="21" cy="77" r="2.7"/><circle cx="32" cy="80" r="2.7"/><circle cx="43" cy="66" r="2.7"/><circle cx="54" cy="69" r="2.7"/><circle cx="65" cy="54" r="2.7"/><circle cx="76" cy="46" r="2.7"/></g>
   <circle cx="85" cy="22" r="18" fill="url(#gGlow)" opacity=".55"/>
   <polygon points="85,9 88.2,19 98.4,19.4 90.3,25.7 93.1,35.8 85,29.7 76.9,35.8 79.7,25.7 71.6,19.4 81.8,19" fill="url(#gFire)"/></svg>`,
+  plan: `<svg viewBox="0 0 100 100"><rect width="100" height="100" fill="#141b2e"/>
+  <path d="M28 90 L28 38 Q28 13 50 13 Q72 13 72 38 L72 90 Z" fill="#1c2742" stroke="url(#gGold)" stroke-width="3"/>
+  <path d="M34.5 90 L34.5 39 Q34.5 19.5 50 19.5 Q65.5 19.5 65.5 39 L65.5 90" fill="none" stroke="#f5eeda" stroke-width="1.3" opacity=".45"/>
+  <circle cx="50" cy="31" r="2.8" fill="url(#gFire)"/>
+  <path d="M33 69 A17 17 0 0 1 67 69" fill="none" stroke="url(#gGold)" stroke-width="3"/>
+  <g stroke="#f5eeda" stroke-width="2" stroke-linecap="round"><path d="M39 60 v4.4"/><path d="M50 54 v4.4"/><path d="M61 60 v4.4"/></g>
+  <polygon points="50,69 50,57 58,69" fill="url(#gGold)"/>
+  <path d="M31 69 h38" stroke="#f5eeda" stroke-width="2"/></svg>`,
   body: `<svg viewBox="0 0 100 100"><rect width="100" height="100" fill="#141b2e"/><path d="M14 62 a40 40 0 0 1 72 0" fill="none" stroke="url(#gGold)" stroke-width="9"/><g stroke="#141b2e" stroke-width="3"><line x1="26" y1="42" x2="31" y2="52"/><line x1="50" y1="28" x2="50" y2="40"/><line x1="74" y1="42" x2="69" y2="52"/></g><rect x="8" y="62" width="84" height="9" rx="4" fill="#f5eeda"/><path d="M50 62 v14" stroke="url(#gFire)" stroke-width="5"/></svg>`,
   settings: `<svg viewBox="0 0 100 100"><rect width="100" height="100" fill="#141b2e"/>
   <g transform="rotate(38 50 50)">
@@ -258,7 +265,7 @@ function renderHome() {
       <polygon points="50,7.5 86.8,28.7 86.8,71.3 50,92.5 13.2,71.3 13.2,28.7" fill="none" stroke="#d4a72c" stroke-width=".55" opacity=".5"/>
       <g fill="#f6d47a"><circle cx="50" cy="2" r="1.5"/><circle cx="91.6" cy="26" r="1.5"/><circle cx="91.6" cy="74" r="1.5"/><circle cx="50" cy="98" r="1.5"/><circle cx="8.4" cy="74" r="1.5"/><circle cx="8.4" cy="26" r="1.5"/></g>
     </svg>
-    ${nodes.map(([v, label, x, y]) => `<button class="node" style="left:${x};top:${y}" onclick="hubGo('${v}',event)"><span class="bub">${ICONS[v]}</span><span class="nl">${label}</span></button>`).join("")}
+    ${nodes.map(([v, label, x, y]) => `<button class="node" style="left:${x};top:${y}" onclick="hubGo('${v}',event)"><span class="bub">${ICONS[v]}</span><span class="nl">${label}${v === "plan" ? `<span class="nsub">ALL-SEEING</span>` : ""}</span></button>`).join("")}
     <div class="hubcenter" onclick="centerTap()" role="button" aria-label="Centre stat">
       <svg viewBox="0 0 178 178" style="width:100%;height:100%">
         <circle cx="89" cy="89" r="80" stroke="#2c3a5e" stroke-width="4.5" fill="rgba(16,24,43,.72)"/>
