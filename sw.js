@@ -1,4 +1,4 @@
-/* The Forge service worker — cache-first offline shell.
+/* The Forge service worker — cache-first offline shell. (v7 hub)
    Cache name is namespaced (fithq-) and cleanup only deletes fithq-*
    caches, never other apps' caches on this origin.
    Cross-origin requests (Open Food Facts) are never intercepted. */
