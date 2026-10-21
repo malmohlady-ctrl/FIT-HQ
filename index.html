@@ -153,6 +153,7 @@ video#scanvid{width:100%;border-radius:12px;background:#000}
 <div class="modal" id="modal"><div class="sheet" id="sheet"></div></div>
 <div class="toast" id="toast"></div>
 <script src="data.js"></script>
+<script src="adapters.js"></script>
 <script src="app.js"></script>
 <script src="nutrition.js"></script>
 <script src="workouts.js"></script>
@@ -161,5 +162,7 @@ video#scanvid{width:100%;border-radius:12px;background:#000}
 <script>
 if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{});}
 </script>
+<div id="savewarn" style="display:none;position:fixed;left:12px;right:12px;bottom:14px;z-index:99;background:#5a1f1f;border:1px solid #e05e1f;color:#f5eeda;border-radius:12px;padding:10px 14px;font-size:.85rem"></div>
+<div id="photoOverlay" style="display:none;position:fixed;inset:0;z-index:60;background:var(--bg,#0d1120);overflow-y:auto;padding:16px"></div>
 </body>
 </html>
