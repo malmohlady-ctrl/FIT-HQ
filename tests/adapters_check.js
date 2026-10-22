@@ -46,9 +46,9 @@ const w = weekActivity();
 okA("week: completed-this-week count (5)", w.count === 5);
 okA("week: active days = 1 (all today)", w.days === 1);
 
-okA("strip renders with all three apps", ["Couch to 5K", "Home Corner", "Namastay Home"].every(n => fitnessStripHTML().includes(n)));
+okA("strip renders with all three apps", ["Couch to 5K", "Lace Up", "Namastay Home"].every(n => fitnessStripHTML().includes(n)));
 okA("panels render unified history", fitnessPanelsHTML().includes("Recent activity"));
-okA("workout hub renders three app points", ["Couch to 5K", "Home Corner", "Namastay Home"].every(n => workoutHubHTML().includes(n)));
+okA("workout hub renders three app points", ["Couch to 5K", "Lace Up", "Namastay Home"].every(n => workoutHubHTML().includes(n)));
 okA("each hub logo is exactly one SVG", ["couch", "corner", "yoga"].every(k => (APP_LOGOS[k].match(/<svg/g) || []).length === 1));
 okA("hub renders 4 SVGs total (triangle + 3 logos)", (workoutHubHTML().match(/<svg/g) || []).length === 4);
 okA("workout hub centre carries the week", workoutHubHTML().includes("THIS WEEK") && workoutHubHTML().includes("active day"));
