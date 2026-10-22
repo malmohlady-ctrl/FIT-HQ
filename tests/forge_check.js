@@ -38,6 +38,6 @@ show("workouts");
 const wkHTML = document.querySelector("#view-workouts").innerHTML;
 ok("workouts home shows the hub", wkHTML.includes("whub"));
 ok("hub centre shows THIS WEEK", wkHTML.includes("THIS WEEK"));
-ok("hub sits ABOVE the built-in player", wkHTML.indexOf("whub") > -1 && wkHTML.indexOf("whub") < wkHTML.indexOf("Dumbbell studio"));
+ok("nothing below the triangle (no built-in player, no recent card)", !wkHTML.includes("Dumbbell studio") && !wkHTML.includes("Recent activity"));
 console.log(pass+" passed, "+fail+" failed");
 process.exit(fail?1:0);
