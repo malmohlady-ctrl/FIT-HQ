@@ -89,7 +89,7 @@ function unifiedHistory(limit) {
     durationSec: e.durationSec || 0, status: couchEntryStatus(e),
     meta: e.km ? `${e.km} km${e.paceSec ? " · " + Math.floor(e.paceSec / 60) + ":" + String(e.paceSec % 60).padStart(2, "0") + "/km" : ""}` : ""});
   const hc = cornerData();
-  for (const e of hc.entries) out.push({id: "corner:" + e.timestamp, source: "corner", app: "Home Corner",
+  for (const e of hc.entries) out.push({id: "corner:" + e.timestamp, source: "corner", app: "Lace Up",
     name: e.name || CORNER_MODULES[e.module] || "Workout", date: e.date, ts: e.timestamp || Date.parse(e.date) || 0,
     durationSec: e.durationSec || 0, status: "completed", meta: CORNER_MODULES[e.module] || ""});
   const y = yogaData();
@@ -118,7 +118,7 @@ function upNext() {
   if (plan.type === "yoga" && !doneToday("yoga"))
     return {app: "Namastay Home", text: "Yoga day — " + (y.last ? "last time: " + esc(y.last.title || "a routine") : "start with Back Care Basics"), url: "../Namastay-Home/"};
   if (plan.type === "dumbbell" && !doneToday("corner") && !doneToday("forge"))
-    return {app: "Home Corner", text: "Strength day — dumbbells + boxing are on the plan", url: "../Home-Corner/"};
+    return {app: "Lace Up", text: "Strength day — dumbbells + boxing are on the plan", url: "../Home-Corner/"};
   if (c.next && !doneToday("couch")) {
     const lastRun = c.lastDone ? (Date.parse(t) - Date.parse(c.lastDone.date)) / 864e5 : 99;
     if (lastRun >= 1) return {app: "Couch to 5K", text: `Week ${c.next.w + 1} · Run ${c.next.r + 1} is next${c.lastDone ? " — last run " + fmtDayShort(c.lastDone.date) : ""}`, url: "../Couch-to-5k/"};
@@ -134,7 +134,7 @@ function fbar(pct, color) {
 }
 const APP_META = {
   couch: {name: "Couch to 5K", icon: "🏃", color: "#ff7a1a", url: "../Couch-to-5k/", blurb: "The 9-week running programme — intervals, coach cues, GPS routes."},
-  corner: {name: "Home Corner", icon: "🥊", color: "#d4a72c", url: "../Home-Corner/", blurb: "Dumbbell circuits, championship boxing rounds, core finishers."},
+  corner: {name: "Lace Up", icon: "🥊", color: "#d4a72c", url: "../Home-Corner/", blurb: "The full session: full-body dumbbell circuit, shadow boxing rounds, core finisher."},
   yoga: {name: "Namastay Home", icon: "🧘", color: "#9db98a", url: "../Namastay-Home/", blurb: "Guided yoga for back care, foundations, and a full reset."}
 };
 function appStatLines(k) {
