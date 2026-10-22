@@ -2,7 +2,7 @@
    Cache name is namespaced (fithq-) and cleanup only deletes fithq-*
    caches, never other apps' caches on this origin.
    Cross-origin requests (Open Food Facts) are never intercepted. */
-const CACHE = "forge-v11";
+const CACHE = "forge-v12";
 const ASSETS = ["./", "./index.html", "./app.js", "./adapters.js", "./nutrition.js", "./workouts.js",
   "./progress.js", "./extras.js", "./data.js", "./manifest.json",
   "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png"];
