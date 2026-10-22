@@ -304,47 +304,7 @@ function startYoga(idx) {
 /* ---------- workouts home ---------- */
 function renderWorkouts() {
   if (PL) { renderPlayer(); return; }
-  const recent = (typeof unifiedHistory === "function" ? unifiedHistory(5) : []);
-  const recentHTML = recent.length ? `<div class="card"><h3>🕘 Recent activity</h3><div class="list">${recent.map(r => `
-    <div class="item"><div class="grow"><div class="t">${esc(r.name)} ${r.status === "partial" ? `<span class="dim">· partial</span>` : ""}</div>
-    <div class="s">${esc(r.app)} · ${fmtDayShort(r.date)}${r.durationSec ? " · " + Math.round(r.durationSec / 60) + " min" : ""}${r.meta ? " · " + esc(r.meta) : ""}</div></div></div>`).join("")}</div></div>` : "";
-  const hubHTML = (typeof workoutHubHTML === "function" ? workoutHubHTML() : "") + recentHTML + `
-  <p class="small muted" style="text-align:center;margin:16px 0 10px">— or use the Forge built-in player (same routines, inside The Forge) —</p>`;
-  const nx = c25kNext();
-  const runsDone = DB.sessions.filter(x => x.type === "run" && x.detail?.program === "c25k").length;
-  const hist = DB.sessions.slice().reverse().slice(0, 8);
-  $("#view-workouts").innerHTML = hubHTML + `
-  <div class="card"><div class="row between"><h3>🏃 Couch to 5K</h3><span class="small muted">${runsDone}/27 runs</span></div>
-    ${nx ? `<p class="small muted" style="margin:6px 0">Up next: <b style="color:var(--ink)">Week ${nx.w + 1} · Run ${nx.r + 1}</b> — ${esc(C25K_PLANS[nx.w].desc)}</p>
-    <button class="btn block" onclick="startRun(${nx.w},${nx.r})">▶ Start Week ${nx.w + 1} Run ${nx.r + 1}</button>`
-    : `<p class="small" style="margin:6px 0">🎉 Program complete — 30 minutes continuous. Legend.</p>`}
-    <details style="margin-top:10px"><summary class="small muted" style="cursor:pointer">All weeks</summary>
-    ${C25K_PLANS.map((p, w) => `<div style="margin-top:8px"><div class="row between"><b class="small">${p.title}</b><span class="small dim">${esc(p.desc)}</span></div>
-      <div class="row" style="margin-top:4px">${[0, 1, 2].map(r => `<button class="chip grow ${c25kDone(w, r) ? "grn on" : ""}" style="justify-content:center" onclick="startRun(${w},${r})">${c25kDone(w, r) ? "✓ " : ""}Run ${r + 1}</button>`).join("")}</div></div>`).join("")}
-    </details></div>
-  <div class="card"><h3>🏋️ Dumbbell studio</h3>
-    <div class="row" style="margin:8px 0">
-      <button class="btn grow" onclick="plStart({type:'dumbbell',title:'Dumbbell Circuit',steps:circuitSteps()})">▶ Full circuit</button>
-      <button class="btn ghost grow" onclick="plStart({type:'dumbbell',title:'Core Finisher',steps:coreSteps()})">Core finisher</button>
-    </div>
-    <p class="small muted">Full circuit: ${DUMBBELL.length} exercises, 45s work / 15s rest — the Home Corner session. Or tap an exercise to log sets, weights & PRs:</p>
-    <div class="list" style="margin-top:6px">${DUMBBELL.map(name => { const pr = exPR(name); return `
-      <div class="item"><div class="grow" onclick="openExercise('${esc(name).replace(/'/g, "\\'")}')" style="cursor:pointer">
-      <div class="t">${esc(name)}</div><div class="s">${pr ? "PR " + dispW(pr) : "Not logged yet"}</div></div>
-      <button class="iconbtn" onclick="openExercise('${esc(name).replace(/'/g, "\\'")}')">›</button></div>`; }).join("")}</div>
-  </div>
-  <div class="card"><div class="row between"><h3>🥊 Boxing</h3>
-    <button class="btn sm" onclick="startBoxing()">▶ Rounds</button></div>
-    <p class="small muted">Called combos, configurable rounds and rest — shadow boxing, no bag needed.</p></div>
-  <div class="card"><h3>🧘 Yoga & recovery</h3>
-    <div class="list">${YOGA_ROUTINES.map((r, i) => `
-      <div class="item"><div class="grow" onclick="startYoga(${i})" style="cursor:pointer">
-      <div class="t">${esc(r.title)}</div><div class="s">${esc(r.tag)} · ${esc(r.desc.slice(0, 64))}…</div></div>
-      <button class="btn sm grn" onclick="startYoga(${i})">▶ Start</button></div>`).join("")}</div></div>
-  ${hist.length ? `<div class="card tight"><h3>Recent sessions</h3><div class="list">${hist.map(x => `
-    <div class="item"><div class="grow"><div class="t">${esc(x.title)}</div>
-    <div class="s">${fmtDay(x.date)} · ${x.mins} min${x.detail?.km ? ` · ${x.detail.km} km` : ""}</div></div>
-    <button class="iconbtn" onclick="delSession('${x.id}')">✕</button></div>`).join("")}</div></div>` : ""}`;
+  $("#view-workouts").innerHTML = (typeof workoutHubHTML === "function" ? workoutHubHTML() : "");
 }
 function delSession(id) {
   confirmSheet("Delete session?", "This workout record will be removed.", "Delete", () => {
