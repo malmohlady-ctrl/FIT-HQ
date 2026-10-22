@@ -128,6 +128,7 @@ function show(view, origin) {
   tt.textContent = titles[view] || "";
   tt.style.display = view === "home" ? "none" : "block";
   $("#hubBack").style.display = view === "home" ? "none" : "block";
+  $("#topBar").style.display = view === "home" ? "none" : "block";
   ({home: renderHome, nutrition: window.renderNutrition, workouts: window.renderWorkouts,
     progress: window.renderProgress, plan: renderPlan, body: renderBody, settings: renderSettings}[view] || renderHome)();
   window.scrollTo(0, 0);
@@ -500,7 +501,7 @@ function importData(file) {
 
 /* ---------- boot ---------- */
 loadDB();
-$("#topDate").textContent = new Date().toLocaleDateString(undefined, {weekday: "long", month: "long", day: "numeric"});
+
 show("home");
 
 function saveOrKey() { S().orKey = document.getElementById("orKey").value.trim(); saveDB(); toast(S().orKey ? "Key saved — photo analysis on" : "Key cleared"); }
