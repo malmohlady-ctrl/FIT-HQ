@@ -245,7 +245,6 @@ function centerData() {
 function centerTap() { show(centerData().tap); }
 function renderHome() {
   const cd = centerData();
-  const firstRun = !DB.entries.length && !DB.weights.length && !DB.sessions.length;
   const circ = 2 * Math.PI * 80;
   const nodes = [
     ["workouts", "Workouts", "50%", "4%"], ["nutrition", "Nutrition", "91%", "27%"],
@@ -253,10 +252,6 @@ function renderHome() {
     ["body", "Body", "9%", "73%"], ["settings", "Settings", "9%", "27%"]
   ];
   $("#view-home").innerHTML = `
-  ${firstRun ? `<div class="card" style="border-color:var(--org)">
-    <h3>👋 Welcome to The Forge</h3>
-    <p class="small muted" style="margin:6px 0 10px">Everything is stored privately on this device. Your profile starts with the details already on file — check them in Settings, then tap a point on the forge to begin.</p>
-    <button class="btn block" onclick="show('settings')">Review my setup</button></div>` : ""}
   <div class="hub">
     <svg class="hexsvg" viewBox="0 0 100 100">
       <polygon points="50,2 91.6,26 91.6,74 50,98 8.4,74 8.4,26" fill="none" stroke="#d4a72c" stroke-width="1.1"/>
